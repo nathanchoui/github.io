@@ -19,23 +19,30 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"nathanchoui.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta property="og:type" content="website">
-<meta property="og:title" content="Nathan&#39;s blog">
-<meta property="og:url" content="https://nathanchoui.github.io/index.html">
+    <meta name="description" content="1.背景介绍在kafka的整个链路中，因为消费端的业务逻辑较复杂，所以往往在消费端的处理速度会成为整个链路的瓶颈。这就需要在消费端做多线程并发处理，这就涉及到消费者多线程模型。 KafkaConsumer本身是线程不安全的，如果多个线程共享一个KafkaConsumer的实例，则会抛出ConcurrentModificationException异常。基于此背景制定以下两套KafkaConsume">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Kafka消费者线程模型">
+<meta property="og:url" content="https://nathanchoui.github.io/2024/01/15/Kafka%E6%B6%88%E8%B4%B9%E8%80%85%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/index.html">
 <meta property="og:site_name" content="Nathan&#39;s blog">
+<meta property="og:description" content="1.背景介绍在kafka的整个链路中，因为消费端的业务逻辑较复杂，所以往往在消费端的处理速度会成为整个链路的瓶颈。这就需要在消费端做多线程并发处理，这就涉及到消费者多线程模型。 KafkaConsumer本身是线程不安全的，如果多个线程共享一个KafkaConsumer的实例，则会抛出ConcurrentModificationException异常。基于此背景制定以下两套KafkaConsume">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2024-01-15T06:22:27.000Z">
+<meta property="article:modified_time" content="2024-01-15T08:35:13.639Z">
 <meta property="article:author" content="Nathan.Z">
+<meta property="article:tag" content="Kafka">
+<meta property="article:tag" content="多线程">
+<meta property="article:tag" content="spring-kafka">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://nathanchoui.github.io/">
+<link rel="canonical" href="https://nathanchoui.github.io/2024/01/15/Kafka%E6%B6%88%E8%B4%B9%E8%80%85%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":true,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"index.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://nathanchoui.github.io/2024/01/15/Kafka%E6%B6%88%E8%B4%B9%E8%80%85%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/","path":"2024/01/15/Kafka消费者线程模型/","title":"Kafka消费者线程模型"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Nathan's blog</title>
+<title>Kafka消费者线程模型 | Nathan's blog</title>
   
 
 
@@ -68,7 +75,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">Nathan's blog</h1>
+      <p class="site-title">Nathan's blog</p>
       <i class="logo-line"></i>
     </a>
   </div>
@@ -94,7 +101,7 @@
   
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -107,6 +114,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E8%83%8C%E6%99%AF%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">1.背景介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%96%B9%E6%A1%88"><span class="nav-number">2.</span> <span class="nav-text">2.多线程方案</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E6%96%B9%E6%A1%881"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 方案1</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-1-%E6%96%B9%E6%A1%88%E6%8F%8F%E8%BF%B0"><span class="nav-number">2.1.1.</span> <span class="nav-text">2.1.1 方案描述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-2-%E6%A0%B7%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="nav-number">2.1.2.</span> <span class="nav-text">2.1.2 样例代码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E6%96%B9%E6%A1%882"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 方案2</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-1-%E6%96%B9%E6%A1%88%E6%8F%8F%E8%BF%B0"><span class="nav-number">2.2.1.</span> <span class="nav-text">2.2.1 方案描述</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-2-%E6%A0%B7%E4%BE%8B%E4%BB%A3%E7%A0%81"><span class="nav-number">2.2.2.</span> <span class="nav-text">2.2.2 样例代码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E4%B8%A4%E7%A7%8D%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 两种方案对比</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-1-%E6%96%B9%E6%A1%882%E6%B6%88%E6%81%AF%E9%A1%BA%E5%BA%8F%E9%97%AE%E9%A2%98"><span class="nav-number">2.3.1.</span> <span class="nav-text">2.3.1 方案2消息顺序问题</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Spring-kafka%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%96%B9%E6%A1%88"><span class="nav-number">3.</span> <span class="nav-text">3.Spring-kafka多线程方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">4.总结</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -148,16 +156,17 @@
 
     </div>
 
-    <div class="main-inner index posts-expand">
+    <div class="main-inner post posts-expand">
 
-    
+
+  
 
 
 <div class="post-block">
   
   
 
-  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="">
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://nathanchoui.github.io/2024/01/15/Kafka%E6%B6%88%E8%B4%B9%E8%80%85%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -171,13 +180,13 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="undefined | Nathan's blog">
+      <meta itemprop="name" content="Kafka消费者线程模型 | Nathan's blog">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          <a href="/2024/01/15/Kafka%E6%B6%88%E8%B4%B9%E8%80%85%E7%BA%BF%E7%A8%8B%E6%A8%A1%E5%9E%8B/" class="post-title-link" itemprop="url">Kafka消费者线程模型</a>
-        </h2>
+        <h1 class="post-title" itemprop="name headline">
+          Kafka消费者线程模型
+        </h1>
 
         <div class="post-meta-container">
           <div class="post-meta">
@@ -213,8 +222,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody">
-          <h2 id="1-背景介绍"><a href="#1-背景介绍" class="headerlink" title="1.背景介绍"></a>1.背景介绍</h2><p>在kafka的整个链路中，因为消费端的业务逻辑较复杂，所以往往在消费端的处理速度会成为整个链路的瓶颈。这就需要在消费端做多线程并发处理，这就涉及到消费者多线程模型。</p>
+    <div class="post-body" itemprop="articleBody"><h2 id="1-背景介绍"><a href="#1-背景介绍" class="headerlink" title="1.背景介绍"></a>1.背景介绍</h2><p>在kafka的整个链路中，因为消费端的业务逻辑较复杂，所以往往在消费端的处理速度会成为整个链路的瓶颈。这就需要在消费端做多线程并发处理，这就涉及到消费者多线程模型。</p>
 <p>KafkaConsumer本身是线程不安全的，如果多个线程共享一个KafkaConsumer的实例，则会抛出ConcurrentModificationException异常。基于此背景制定以下两套KafkaConsumer多线程方案。</p>
 <h2 id="2-多线程方案"><a href="#2-多线程方案" class="headerlink" title="2.多线程方案"></a>2.多线程方案</h2><h3 id="2-1-方案1"><a href="#2-1-方案1" class="headerlink" title="2.1 方案1"></a>2.1 方案1</h3><h4 id="2-1-1-方案描述"><a href="#2-1-1-方案描述" class="headerlink" title="2.1.1 方案描述"></a>2.1.1 方案描述</h4><p>消费端启动多个线程，每个实例维护一个KafkaConsumer实例，负责消息获取，消息处理，offset提交等完整的处理流程。</p>
 <h4 id="2-1-2-样例代码"><a href="#2-1-2-样例代码" class="headerlink" title="2.1.2 样例代码"></a>2.1.2 样例代码</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> com.github.kafka.client.demo.MyConstants;</span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.clients.consumer.*;</span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.common.TopicPartition;</span><br><span class="line"><span class="keyword">import</span> org.apache.kafka.common.errors.WakeupException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.net.InetAddress;</span><br><span class="line"><span class="keyword">import</span> java.net.UnknownHostException;</span><br><span class="line"><span class="keyword">import</span> java.time.Duration;</span><br><span class="line"><span class="keyword">import</span> java.util.Collections;</span><br><span class="line"><span class="keyword">import</span> java.util.Optional;</span><br><span class="line"><span class="keyword">import</span> java.util.Properties;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> Nathan.Z</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">KafkaConsumerRunner</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">boolean</span> <span class="variable">running</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> KafkaConsumer kafkaConsumer;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">KafkaConsumerRunner</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">Properties</span> <span class="variable">properties</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Properties</span>();</span><br><span class="line">		<span class="comment">// 此处省略具体配置</span></span><br><span class="line">        kafkaConsumer = <span class="keyword">new</span> <span class="title class_">KafkaConsumer</span>&lt;&gt;(properties);</span><br><span class="line">        running = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            kafkaConsumer.subscribe(Collections.singletonList(<span class="string">&quot;topic&quot;</span>));</span><br><span class="line">            <span class="keyword">while</span> (running) &#123;</span><br><span class="line">                ConsumerRecords&lt;String, String&gt; records = kafkaConsumer.poll(Duration.ofMillis(<span class="number">10000</span>));</span><br><span class="line">                <span class="keyword">for</span> (ConsumerRecord&lt;String, String&gt; record : records) &#123;</span><br><span class="line">                    <span class="comment">// do something</span></span><br><span class="line">                &#125;</span><br><span class="line">                kafkaConsumer.commitAsync();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (WakeupException e) &#123;</span><br><span class="line">            <span class="keyword">if</span> (running) &#123;</span><br><span class="line">                <span class="keyword">throw</span> e;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            kafkaConsumer.close();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">shutdown</span><span class="params">()</span> &#123;</span><br><span class="line">        running = <span class="literal">false</span>;</span><br><span class="line">        kafkaConsumer.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
@@ -294,7 +302,6 @@
 <h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4.总结"></a>4.总结</h2><p>很明显方案1的多线程方案更利于工程实现，也规避了很多问题，这也是Spring-kafka这种实现的原因。</p>
 <p>备注：本文有错误的地方，欢迎大家指摘条讨论。</p>
 
-      
     </div>
 
     
@@ -302,11 +309,18 @@
     
 
     <footer class="post-footer">
-        <div class="post-eof"></div>
-      
+          <div class="post-tags">
+              <a href="/tags/Kafka/" rel="tag"># Kafka</a>
+              <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag"># 多线程</a>
+              <a href="/tags/spring-kafka/" rel="tag"># spring-kafka</a>
+          </div>
+
+        
+
     </footer>
   </article>
 </div>
+
 
 
 
