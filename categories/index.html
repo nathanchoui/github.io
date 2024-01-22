@@ -19,10 +19,12 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"nathanchoui.github.io","root":"/","images":"/images","scheme":"Mist","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
 
-    <meta property="og:type" content="website">
+    <meta name="description" content="var gitalkConfig &#x3D; {&quot;clientID&quot;:803632,&quot;clientSecret&quot;:&quot;Iv1.d3b94413bedc665f&quot;,&quot;repo&quot;:&quot;https:&#x2F;&#x2F;github.com&#x2F;nathanchoui&#x2F;blogs-comments&quot;,&quot;owner&quot;:&quot;nathanchoui&quot;,&quot;admin&quot;:[&quot;nathanchoui&quot;],&quot;distractionFr">
+<meta property="og:type" content="website">
 <meta property="og:title" content="categories">
 <meta property="og:url" content="https://nathanchoui.github.io/categories/index.html">
 <meta property="og:site_name" content="Nathan&#39;s blog">
+<meta property="og:description" content="var gitalkConfig &#x3D; {&quot;clientID&quot;:803632,&quot;clientSecret&quot;:&quot;Iv1.d3b94413bedc665f&quot;,&quot;repo&quot;:&quot;https:&#x2F;&#x2F;github.com&#x2F;nathanchoui&#x2F;blogs-comments&quot;,&quot;owner&quot;:&quot;nathanchoui&quot;,&quot;admin&quot;:[&quot;nathanchoui&quot;],&quot;distractionFr">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2024-01-08T14:28:13.000Z">
 <meta property="article:modified_time" content="2024-01-08T14:30:24.138Z">
@@ -193,6 +195,7 @@
     
 
 
+    <div class="comments gitalk-container"></div>
 </div>
   </main>
 
@@ -207,6 +210,24 @@
     </span>
     <span class="author" itemprop="copyrightHolder">Nathan.Z</span>
   </div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
   <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
   </div>
 
@@ -234,10 +255,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
-  <script class="next-config" data-name="chatra" type="application/json">{"enable":true,"async":true,"id":null}</script>
-<script src="/js/third-party/chat/chatra.js"></script>
-<script async src="https://call.chatra.io/chatra.js"></script>
-
+  
 
 
 
@@ -245,12 +263,15 @@
 
 
   
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
-  <script class="next-config" data-name="leancloud_visitors" type="application/json">{"enable":true,"app_id":"OiYtpNKc5VnPPYRVqH81bCCV-gzGzoHsz","app_key":"zoJNAtvccnuGBcWvxxv9NB5O","server_url":"os8Ma0L7mQZOyWURCTrevUSy","security":true}</script>
-  <script src="/js/third-party/statistics/lean-analytics.js"></script>
 
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.css" integrity="sha256-AJnUHL7dBv6PGaeyPQJcgQPDjt/Hn/PvYZde1iqfp8U=" crossorigin="anonymous">
+
+<script class="next-config" data-name="gitalk" type="application/json">{"enable":true,"github_id":"nathanchoui","repo":null,"client_id":803632,"client_secret":"Iv1.d3b94413bedc665f","admin_user":null,"distraction_free_mode":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token","language":null,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/gitalk/1.8.0/gitalk.min.js","integrity":"sha256-MVK9MGD/XJaGyIghSVrONSnoXoGh3IFxLw0zfvzpxR4="},"path_md5":"a676607444a8bc8b150c9a3aff884e61"}</script>
+<script src="/js/third-party/comments/gitalk.js"></script>
 
 </body>
 </html>
